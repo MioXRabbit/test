@@ -1,0 +1,624 @@
+
+/* 基礎樣式初始化 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Microsoft JhengHei", sans-serif;
+    scroll-behavior: smooth; /* 點擊導覽連結時平滑捲動 */
+}
+
+/* 網頁主體設定 */
+/* --- 頁面自動吸附系統 (Scroll Snapping) --- */
+body, html {
+    /* 定義垂直捲動方向 (y) 的吸附行為 */
+    /* mandatory: 強制吸附，捲動停止時一定會對齊最近的標記點 */
+    scroll-snap-type: y mandatory;
+    /* 確保透過點擊導覽列跳轉時，依然保有平滑滾動感 */
+    scroll-behavior: smooth;
+}
+
+/* 固定背景層修正版 */
+.fixed-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* 確保路徑正確，讀取專案內的視覺圖 */
+    background: url('./遊戲主視覺.png') no-repeat center center/cover;
+    z-index: 0;
+    /* 讓滑鼠事件穿透背景層，不影響內容點擊 */
+    pointer-events: none;
+    transition: filter 1s ease;
+    filter: brightness(1.5);
+}
+
+/* 1. 跑馬燈外層容器：固定在左側，寬度窄小確保單排顯示 */
+.side-marquee {
+    position: fixed;
+    left: 25px;
+    top: 0;
+    height: 100vh; /* 佔滿視窗高度 */
+    width: 30px; /* 寬度設窄，確保文字不會排成兩排 */
+    z-index: 3000; /* 確保在最上層 */
+    overflow: hidden; /* 隱藏溢出的文字內容 */
+    display: flex;
+    justify-content: center; /* 讓內部的文字軌道水平置中 */
+}
+
+/* 2. 藍色直角方框 (指示器) */
+#marquee-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%; /* 寬度填滿側邊容器 */
+    height: 60px; /* 方框高度 */
+    background-color: #68BFFF; /* 使用主題藍色 */
+    border-radius: 0; /* 確保為直角樣式 */
+    z-index: 10; /* 層級高於文字，才能產生反色效果 */
+    pointer-events: none; /* 讓滑鼠點擊穿透 */
+    /* 核心功能：混合模式 */
+    /* 當此方框覆蓋在藍色文字上時，會自動產生顏色反轉（反黑/反白） */
+    mix-blend-mode: difference;
+}
+
+/* 3. 文字捲動軌道 */
+.marquee-track {
+    display: block; /* 改為區塊元素，確保文字上下銜接 */
+    writing-mode: vertical-rl; /* 設定文字為垂直排列 */
+    /* 設定動畫：名稱(scroll-vertical-loop) 時間(25s) 線性(linear) 無限循環(infinite) */
+    animation: scroll-vertical-loop 25s linear infinite;
+}
+
+/* 4. 文字內容樣式 */
+#marquee-content, #marquee-content-clone {
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 5px;
+    color: #68BFFF; /* 預設文字顏色為主體藍 */
+    white-space: nowrap; /* 強制文字不換行 */
+    display: block; /* 確保層疊排版 */
+}
+
+/* 5. 垂直無縫循環動畫 */
+@keyframes scroll-vertical-loop {
+    0% {
+        transform: translateY(0);
+    }
+    /* 當拉到 -50%（第一組文字完全消失）時瞬間重置回 0% */
+    100% {
+        transform: translateY(-50%);
+    }
+}
+
+
+
+
+/* 右側半透明導覽列 */
+nav {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 70px;
+    /* 修改點：預設背景設為完全透明 (alpha 值為 0) */
+    background: rgba(0, 0, 0, 0);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1000;
+    /* 轉場效果：增加背景色 (background) 的平滑過渡 */
+    transition: width 0.3s ease, background 0.3s ease;
+    padding-top: 100px;
+}
+
+    /* 懸停狀態：當滑鼠移入導覽列時 */
+    nav:hover {
+        width: 220px;
+        /* 展開時顯示原本的半透明深色背景 */
+        background: rgba(0, 0, 0, 0.6);
+    }
+
+
+/* 導覽項目 active 狀態：當前所在分頁的高亮提示 */
+.nav-item.active {
+    background: rgba(104, 191, 255, 0.2); /* 已修改：主題色半透明背景 */
+    border-left: 4px solid #68BFFF; /* 已修改：左側裝飾條改為主題藍 */
+}
+
+    .nav-item.active .nav-icon {
+        transform: scale(1.1);
+    }
+
+    .nav-item.active .nav-text {
+        color: #68BFFF; /* 已修改：活動狀態下的文字顏色 */
+        opacity: 1;
+    }
+
+/* LOGO 獨立顯示 (右上角) */
+.logo-box {
+    position: fixed;
+    top: 0px;
+    right: 23px;
+    width: 180px;
+    z-index: 2000;
+    pointer-events: none;
+}
+
+    .logo-box img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+
+/* 導覽連結清單 */
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 20px 22px;
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: 0.3s;
+}
+
+    /* 導覽列懸停效果 */
+    .nav-item:hover {
+        background: rgba(104, 191, 255, 0.1); /* 已修改：懸停時的微光主題色 */
+        color: #68BFFF; /* 已修改：文字變為主題藍 */
+    }
+
+.nav-icon {
+    min-width: 30px;
+    height: 30px;
+    margin-right: 20px;
+    background: transparent !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible !important;
+}
+
+    .nav-icon img {
+        width: 30px !important;
+        height: 30px !important;
+        display: block !important;
+        object-fit: contain !important;
+    }
+
+/* 導覽列縮小時隱藏文字並將圖標置中 */
+nav:not(:hover) .nav-icon {
+    margin-right: 0;
+}
+
+.nav-text {
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-weight: bold;
+}
+
+nav:hover .nav-text {
+    opacity: 1;
+}
+
+/* 分頁區段設定：統一保留右側導覽列空間 */
+section {
+    /* 基礎尺寸設定，確保每一頁都跟視窗一樣大 */
+    width: 100vw;
+    height: 100vh;
+    /* 核心吸附設定：定義每一頁的「頂端」為吸附對齊點 */
+    scroll-snap-align: start;
+    /* always: 防止快速捲動時一次跳過多個頁面，增加操作穩定度 */
+    scroll-snap-stop: always;
+    /* 以下維持你原有的排版設定 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 70px;
+    position: relative;
+}
+
+    /* 針對內容過長的區塊 (如 Podcast) 的特別提醒：
+   因為開啟了強制吸附，內部必須維持 overflow-y: auto，
+   否則使用者會無法看完該頁所有內容。你的 .podcast-scroll-box 已有此設定。 */
+
+    /* 遊戲展示頁面：邊框特殊處理 */
+    section.game-zero {
+        padding: 0 70px 0 0; /* 上 右 下 左 */
+    }
+
+/* 內容方框：入場動畫初始狀態 */
+.content-box {
+    width: 100%;
+    max-width: 900px;
+    height: 550px;
+    background: rgba(34, 34, 34, 0.9); /* 深色半透明背景 */
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* 入場前狀態：隱藏並向下偏移 */
+    opacity: 0;
+    transform: translateY(100px);
+    transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); /* 平滑進場曲線 */
+}
+
+    /* 當使用者捲動到此頁面時呈現的狀態（透過 JS 加入 .reveal） */
+    .content-box.reveal {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+/* 文字規範 */
+h1 {
+    margin-bottom: 25px;
+    color: #68BFFF; /* 已修改：標題改為主題藍 */
+    font-size: 32px;
+}
+
+.p-text {
+    font-size: 15px;
+    line-height: 2;
+    color: #ddd;
+}
+
+/* --- Podcast 最終整合樣式 --- */
+
+/* 1. 外層容器：採用半透明毛玻璃質感 */
+.podcast-wrapper {
+    width: 100%;
+    max-width: 700px;
+    margin: 20px auto 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(30, 30, 30, 0.7); /* 半透明深灰底 */
+    backdrop-filter: blur(10px); /* 毛玻璃模糊特效 */
+    border: 1px solid rgba(104, 191, 255, 0.3); /* 已修改：主題藍細邊框 */
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* 2. 滾動控制層：解決空間遮擋與切斷問題 */
+.podcast-scroll-box {
+    max-height: 480px;
+    overflow-y: auto;
+    padding: 20px;
+    /* 底部預留 90px 緩衝，配合 JS 空白塊達成完美對齊 */
+    padding-bottom: 90px !important;
+    box-sizing: border-box;
+    scroll-behavior: smooth; /* 平滑捲動效果 */
+}
+
+    /* 3. 自定義捲軸美化 */
+    .podcast-scroll-box::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .podcast-scroll-box::-webkit-scrollbar-thumb {
+        background: #68BFFF; /* 已修改：捲軸改為主題藍 */
+        border-radius: 10px;
+    }
+
+/* 4. 單集項目樣式 */
+.podcast-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05); /* 輕微提亮背景 */
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* 5. 播放器顏色：強制深色化處理 */
+audio {
+    width: 100%;
+    height: 32px;
+    /* 強制將白色控制列反轉為黑色/深灰色 */
+    filter: invert(0.9) hue-rotate(180deg) brightness(0.8) !important;
+    background: transparent !important;
+    border-radius: 30px;
+}
+
+/* 6. 標題文字 */
+.podcast-item h4 {
+    color: #68BFFF; /* 已修改：Podcast 單集標題改為主題藍 */
+    font-size: 15px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    text-align: left;
+}
+
+
+
+/* --- 角色區容器：設定為全螢幕裁切 --- */
+#char-content {
+    position: relative;
+    width: 100vw; /* 佔滿視窗寬度 */
+    height: 100vh; /* 佔滿視窗高度 */
+    background: transparent;
+    padding: 0;
+    overflow: hidden; /* 關鍵：立繪超出螢幕邊界即裁切 */
+    display: flex;
+    justify-content: center; /* 讓內部的 UI 容器置中 */
+    align-items: center;
+}
+
+/* 角色展示主佈局：作為 UI 元件的定位參考範圍 */
+.char-layout {
+    position: relative;
+    width: 100%;
+    max-width: 1100px;
+    height: 600px;
+    /* 修改重點：整體向下移動 */
+    margin-top: 15vh; /* 增加上邊距，數值越大整體越靠下 */
+    pointer-events: none;
+}
+
+/* 1. 頭像按鈕區：恢復圓形、選取發光型態 */
+.char-btn-wrap {
+    position: absolute;
+    left: 20px; /* 維持在中央參考範圍的左側 */
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 10;
+    pointer-events: auto; /* 恢復按鈕可點擊 */
+}
+
+/* 圓形頭像基礎樣式 */
+.head-circle {
+    width: 46px; /* 回歸精緻尺寸 */
+    height: 46px;
+    border-radius: 50%; /* 確保圓形 */
+    border: 2px solid rgba(104, 191, 255, 0.3); /* 主題藍半透明邊框 */
+    cursor: pointer;
+    overflow: hidden;
+    transition: 0.3s ease;
+    background: #111;
+}
+
+    /* 頭像選取狀態：維持發光、不放大圖片 */
+    .head-circle.active {
+        border-color: #68BFFF; /* 選中時變為純主題藍 */
+        box-shadow: 0 0 20px rgba(104, 191, 255, 0.8); /* 強烈的藍色發光效果 */
+        /* 此處已移除 transform: scale 放大效果 */
+    }
+
+    .head-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+/* 2. 角色大圖展示區：全螢幕魄力呈現 */
+.char-img-side {
+    position: absolute;
+    /* 修改重點：下沉量調整 */
+    bottom: -520px; /* 原為 -150px，增加負值讓角色更往下沉，露出更多上半身 */
+    left: -10vw;
+    width: 100vw;
+    height: 220%; /* 配合下沉，稍微再放大立繪，更有張力 */
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 1;
+}
+
+    .char-img-side img {
+        height: 100%;
+        width: auto;
+        object-fit: contain;
+        /* 暈影：已縮小數值，若仍有黑影可刪除此行 */
+        /*filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));*/
+    }
+
+/* 3. 角色資訊區塊：右側毛玻璃資訊窗 */
+.char-info-side {
+    position: absolute;
+    right: 30px;
+    top: 60%; /* 配合先前下移的設定 */
+    transform: translateY(-50%);
+    width: 340px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(15px);
+    padding: 30px; /* 四周均等的內距 */
+    border-radius: 8px;
+    border-left: 5px solid #68BFFF;
+    z-index: 5;
+    /* 核心修改：確保容器內所有內容強制靠左對齊 */
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* 確保內容物件靠左排列 */
+}
+
+/* 角色名字標題 */
+.char-name-title {
+    font-size: 42px;
+    font-weight: 900;
+    color: #68BFFF;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 15px rgba(104, 191, 255, 0.4);
+    /* 確保標題本身靠左 */
+    text-align: left;
+    width: 100%;
+}
+
+.char-intro {
+    white-space: pre-wrap;
+    line-height: 1.8;
+    font-size: 16px;
+    color: #eee;
+    margin: 0;
+    /* 確保段落文字靠左 */
+    text-align: left;
+    width: 100%;
+}
+
+
+
+/* 隱藏標題 */
+.char-section-title {
+    display: none;
+}
+
+
+
+
+
+
+
+/* 遊戲展示頁面 Title 強化 - 移至左上角並縮小 */
+.game-title {
+    position: absolute;
+    top: 40px;
+    left: 100px; /* 避開左側跑馬燈 */
+    color: #ffffff;
+    font-size: 24px; /* 從原本的 clamp 縮小到固定大小或更小 */
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 0 0 15px rgba(104, 191, 255, 0.6);
+    margin: 0;
+    text-align: left;
+    z-index: 10;
+}
+
+/* 滿版遊戲區按鈕容器 */
+/* 強制顯示遊戲區與按鈕，確保佈局置中 */
+.game-zero .full-game-ui {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* 遊戲啟動按鈕基礎樣式 */
+.play-btn {
+    display: inline-block;
+    padding: 18px 60px;
+    /* 已修改：按鈕背景改為主題藍 (#68BFFF) */
+    background: #68BFFF;
+    /* 已修改：背景文字改為深色，確保在藍底上的閱讀清晰度 */
+    color: #000;
+    border: none;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 10;
+    /* 支援背景漸層進度條的設定 */
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* --- [新增：WebGL 嵌入專用樣式] --- */
+
+/* 遊戲容器方框：佔據扣除導覽列後寬度的 80% */
+.game-container-box {
+    width: 80%; /* 佔據 80% 的可用寬度 */
+    max-width: none; /* 取消原本的 1000px 限制 */
+    height: auto;
+    padding: 0;
+    background: transparent; /* 移除深色背景，讓遊戲主體更突出 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 嵌入視窗的比例控制 - 依原設定 960:600 = 1.6 比例 */
+.game-embed-viewport {
+    position: relative;
+    width: 100%;
+    /* 960:600 的比例高度計算：(600/960) * 100 = 62.5% */
+    padding-top: 62.5%;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #68BFFF;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+/* iframe 填滿容器 */
+.game-frame-inline {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+section.game-zero {
+    display: flex;
+    justify-content: center; /* 水平置中 */
+    align-items: center; /* 垂直置中 */
+    padding-right: 70px; /* 避開右側導覽列 */
+}
+
+
+
+
+/* 製作人員容器：使用網格佈局 */
+.staff-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 預設大螢幕顯示兩欄 */
+    gap: 20px;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto 0;
+}
+
+/* 每一列的樣式：從淡色風格改為深色透明風格 */
+.staff-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 10px;
+    /* 已修改：分隔線改為半透明白，適合深色背景 */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    /* 已修改：文字改為亮灰色 */
+    color: #eee;
+}
+
+/* 職稱標籤樣式 */
+.staff-role {
+    /* 已修改：改為主題藍色 */
+    color: #68BFFF;
+    font-weight: bold;
+}
+
+/* 名字標籤樣式 */
+.staff-name {
+    /* 已修改：強化主題色呈現 */
+    color: #68BFFF !important;
+    font-weight: 900;
+}
+
+/* 手機版適配：自動切換為單欄佈局 */
+@media (max-width: 600px) {
+    .staff-grid {
+        grid-template-columns: 1fr;
+    }
+}
