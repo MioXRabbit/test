@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虛戀協議作品導覽</title>
+    <!-- 引入外部 CSS -->
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+    <!-- 背景層 -->
+    <div class="fixed-bg" id="bg"></div>
+
+    <!-- 3. 左側跑馬燈文字容器 -->
+    <div class="side-marquee">
+        <!-- 指示器方框 -->
+        <div id="marquee-indicator"></div>
+
+        <!-- 文字軌道 -->
+        <div class="marquee-track">
+            <div id="marquee-content"></div>
+            <div id="marquee-content-clone"></div>
+        </div>
+    </div>
+
+
+    <!-- 獨立 LOGO -->
+    <div class="logo-box">
+        <img src="./icon/LOGO_1.png" alt="LOGO">
+    </div>
+
+    <!-- 右側導覽列 -->
+    <nav>
+        <div class="nav-links" id="navList"></div>
+    </nav>
+
+    <!-- 分頁內容 -->
+    <div id="scroll-wrapper">
+        <section id="sec0"></section> <!-- 1. Home (純背景) -->
+
+        <section id="sec1">
+            <div class="content-box">
+                <h1>策展理念</h1>
+                <p class="sub-title">Team Overview & Vision</p>
+                <p class="p-text">這裡填寫原本的簡介內文敘述...</p>
+            </div>
+        </section>
+
+
+        <!-- 分頁內容中的 sec2 部分 -->
+        <section id="sec2">
+            <div class="content-box">
+                <h1>Podcast 展示</h1>
+                <!-- 建立一個專屬容器，讓 JS 注入 RSS 列表 -->
+                <div class="podcast-wrapper" id="podcast-container">
+                    <p style="color: #666; padding: 20px;">載入中...</p>
+                </div>
+            </div>
+        </section>
+
+
+
+        <section id="sec3">
+            <div class="content-box">
+                <h1>遊戲介紹</h1>
+                <p class="sub-title">Team Overview & Vision</p>
+                <p class="p-text">這裡填寫原本的簡介內文敘述...</p>
+            </div>
+        </section>
+
+
+
+        <section id="sec4">
+            <!-- 這是動畫容器 -->
+            <div class="content-box" id="char-content">
+                <!-- JS 會將填充好的模板放入這裡 -->
+            </div>
+        </section>
+
+        <!-- 角色區獨立模板宣告 -->
+        <template id="char-template">
+            <h1 class="char-section-title">角色展示</h1>
+            <div class="char-layout">
+                <!-- 角色大立繪 -->
+                <div class="char-img-side">
+                    <img class="main-img" src="" alt="character">
+                </div>
+                <!-- 角色介紹資訊 -->
+                <div class="char-info-side">
+                    <h2 class="char-name-title"></h2> <!-- 名字標題 -->
+                    <p class="p-text char-intro"></p> <!-- 介紹內文 -->
+                </div>
+            </div>
+            <!-- 頭像切換按鈕區 -->
+            <div class="char-btn-wrap"></div>
+        </template>
+
+
+
+
+        <!-- sec5 遊戲 A -->
+        <!-- 修改後的 sec5 區塊 -->
+        <section id="sec5" class="game-zero">
+            <div class="content-box game-container-box">
+                <h1 class="game-title">視覺小說展示</h1>
+                <!--<div class="game-embed-viewport">-->
+                    <!-- 遊戲會直接在這裡加載 -->
+                    <!--<iframe id="game-frame-5" allow="autoplay; microphone; camera; focus-without-user-activation" src="..."></iframe>-->
+
+                </div>
+            </div>
+        </section>
+
+        
+        <!-- sec6 遊戲 B 容器化 -->
+        <section id="sec6">
+            <div class="content-box game-container-box">
+                <h1 class="game-title">寂寞流星雨展示</h1>
+                <!--<div class="game-embed-viewport">
+                    <iframe id="game-frame-6" allow="autoplay; microphone; camera; focus-without-user-activation" src="..."></iframe>
+
+                </div>-->
+            </div>
+        </section>
+
+
+
+
+        <!--<section id="sec7">
+            <div class="content-box" id="staff-content">-->
+                <!-- JS 會將內容渲染至此 -->
+            <!--</div>
+        </section>-->
+    </div>
+
+    <!-- 6. 依序引入 JS 檔案 -->
+    <!-- 先載入設定檔，再載入邏輯檔 -->
+    <script src="./config.js"></script>
+    <script src="./script.js"></script>
+
+</body>
+</html>
