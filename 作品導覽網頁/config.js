@@ -81,7 +81,7 @@ const translations = {
         nav_gameIntro: "Game Info",
         nav_charIntro: "Characters",
         nav_visualNovel: "Visual Novel",
-        nav_meteor: "Emotion meteor",
+        nav_meteor: "Emotion Meteor",
         // nav_staff: "Staff",
         // 策展理念
         introTitle: "Curatorial Concept",
