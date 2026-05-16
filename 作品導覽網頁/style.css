@@ -1,0 +1,964 @@
+
+/* 基礎樣式初始化 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Microsoft JhengHei", sans-serif;
+    scroll-behavior: smooth; /* 點擊導覽連結時平滑捲動 */
+}
+
+/* ==========================================
+ * 網頁主體設定：滿版高度鎖（復原滾輪吸附關鍵）
+ * ========================================== */
+html, body {
+    /* 💡 核心修復：必須強制鎖定 100% 視窗高度，滾輪吸附才不會被破壞 */
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    /* 定義垂直捲動方向 (y) 的強制吸附行為 */
+    scroll-snap-type: y mandatory;
+    /* 確保透過點擊導覽列跳轉時，依然保有平滑滾動感 */
+    scroll-behavior: smooth;
+    /* 💡 iOS 完美相容鎖：防止 iOS 滾動與 JS 跳轉互相拉扯卡死 */
+    -webkit-overflow-scrolling: touch;
+    /* 💡 核心修復：允許 Y 軸滾動，但隱藏多餘的溢出，確保吸附核心抓得到滾輪事件 */
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* 讓 iOS 把整個背景當作可點擊物件 */
+    cursor: default;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ==========================================
+ * 區塊設定：必須為滿版且具備吸附對齊點
+ * ========================================== */
+section, .section {
+    /* 💡 核心修復：每一個區塊必須嚴格等於 100% 視窗高度，滾輪才能精準吸附 */
+    height: 100vh;
+    width: 100%;
+    /* 設定吸附對齊點為區塊頂端 */
+    scroll-snap-align: start;
+    /* 防止使用者在 iOS 快速滑動時直接連跳數頁 */
+    scroll-snap-stop: always;
+    /* 確保內部元件排版正常 */
+    box-sizing: border-box;
+}
+/* 固定背景層（⚡ iOS 終極完美載入版） */
+.fixed-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* ⚡ 關鍵修正 1：改用 100vh 搭配最保險的物理高度，防止 iOS Safari 網址列縮放時圖層崩潰 */
+    height: 100vh;
+    /* 確保路徑正確，讀取專案內的視覺圖 */
+    background: url('./info/遊戲主視覺.png') no-repeat center center/cover;
+    z-index: 0;
+    /* 讓滑鼠事件穿透背景層，不影響內容點擊 */
+    pointer-events: none;
+    transition: filter 1s ease;
+    filter: brightness(1.5);
+    /* ⚡ 關鍵修正 2：強迫 iOS 啟用 GPU 顯示卡硬體加速 */
+    /* 這行代碼是消滅 iOS 背景圖不見、閃爍、黑屏的終極核心，能大幅節約 iPhone 記憶體 */
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    /* ⚡ 關鍵修正 3：防止圖片在 iOS 寬螢幕或旋轉時被強行拉伸變形 */
+    background-attachment: scroll;
+    /* ⚡ 補上這行：讓網頁在縮放與載入大圖時，直接跳過繁重的像素鋸齒計算，大幅提升 iOS 渲染速度 */
+    image-rendering: -webkit-optimize-contrast;
+}
+
+/* ==========================================
+ * 💡 單顆語系切換按鈕：左上方固定定位
+ * ========================================== */
+#langToggleBtn {
+    position: fixed;
+    top: 20px; /* 距離螢幕頂端 20 像素 */
+    left: 80px; /* 改為距離螢幕左側 20 像素 */
+    z-index: 9999; /* 確保按鈕永遠浮在網頁所有元素的最上層 */
+    /* 按鈕精緻科技感樣式 */
+    padding: 8px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #68BFFF; /* 主題藍色文字 */
+    background: rgba(0, 0, 0, 0.6); /* 半透明黑背景，完美融入深色主題 */
+    border: 1px solid #68BFFF; /* 主題藍邊框 */
+    border-radius: 4px; /* 微圓角 */
+    cursor: pointer;
+    transition: all 0.2s ease; /* 加上平滑的過渡動畫 */
+}
+
+    /* 滑鼠懸停與 iOS 點擊時的視覺反饋 */
+    #langToggleBtn:hover {
+        background: #68BFFF;
+        color: #000;
+    }
+
+
+/* 1. 跑馬燈外層容器：固定在左側，寬度窄小確保單排顯示 */
+.side-marquee {
+    position: fixed;
+    left: 25px;
+    top: 0;
+    height: 100vh; /* 佔滿視窗高度 */
+    width: 23px; /* 寬度設窄，確保文字不會排成兩排 */
+    z-index: 3000; /* 確保在最上層 */
+    overflow: hidden; /* 隱藏溢出的文字內容 */
+    display: flex;
+    justify-content: left; /* 讓內部的文字軌道水平置中 */
+}
+
+/* 2. 藍色直角方框 (指示器) */
+#marquee-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%; /* 寬度填滿側邊容器 */
+    height: 100px; /* 方框高度 */
+    background-color: #68BFFF; /* 使用主題藍色 */
+    border-radius: 0; /* 確保為直角樣式 */
+    z-index: 10; /* 層級高於文字，才能產生反色效果 */
+    pointer-events: none; /* 讓滑鼠點擊穿透 */
+    /* 核心功能：混合模式 */
+    /* 當此方框覆蓋在藍色文字上時，會自動產生顏色反轉（反黑/反白） */
+    mix-blend-mode: difference;
+}
+
+/* 3. 文字捲動軌道 */
+.marquee-track {
+    display: block; /* 改為區塊元素，確保文字上下銜接 */
+    writing-mode: vertical-rl; /* 設定文字為垂直排列 */
+    /* 設定動畫：名稱(scroll-vertical-loop) 時間(25s) 線性(linear) 無限循環(infinite) */
+    animation: scroll-vertical-loop 25s linear infinite;
+}
+
+/* 4. 文字內容樣式 */
+#marquee-content, #marquee-content-clone {
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 5px;
+    color: #68BFFF; /* 預設文字顏色為主體藍 */
+    white-space: nowrap; /* 強制文字不換行 */
+    display: block; /* 確保層疊排版 */
+}
+
+/* 5. 垂直無縫循環動畫 */
+@keyframes scroll-vertical-loop {
+    0% {
+        transform: translateY(0);
+    }
+    /* 當拉到 -50%（第一組文字完全消失）時瞬間重置回 0% */
+    100% {
+        transform: translateY(-50%);
+    }
+}
+
+/* LOGO 獨立顯示 (右上角) */
+.logo-box {
+    position: fixed;
+    top: 0px;
+    right: 23px;
+    width: 180px;
+    z-index: 10000 !important;
+    pointer-events: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+    .logo-box img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        pointer-events: none;
+    }
+
+
+/* 右側半透明導覽列 */
+nav {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 70px;
+    /* 修改點：預設背景設為完全透明 (alpha 值為 0) */
+    background: rgba(0, 0, 0, 0);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1000;
+    /* 轉場效果：增加背景色 (background) 的平滑過渡 */
+    transition: width 0.3s ease, background 0.3s ease;
+    padding-top: 100px;
+}
+
+    /* 懸停狀態：當滑鼠移入導覽列時 */
+    nav:hover {
+        width: 220px;
+        /* 展開時顯示原本的半透明深色背景 */
+        background: rgba(0, 0, 0, 0.6);
+    }
+
+
+/* 導覽項目 active 狀態：當前所在分頁的高亮提示 */
+.nav-item.active {
+    background: rgba(104, 191, 255, 0.2); /* 已修改：主題色半透明背景 */
+    border-left: 4px solid #68BFFF; /* 已修改：左側裝飾條改為主題藍 */
+}
+
+    .nav-item.active .nav-icon {
+        transform: scale(1.1);
+    }
+
+    .nav-item.active .nav-text {
+        color: #68BFFF; /* 已修改：活動狀態下的文字顏色 */
+        opacity: 1;
+    }
+
+
+/* 導覽連結清單 */
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 20px 22px;
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: 0.3s;
+    gap: 12px;
+}
+
+/* 導覽連結清單 */
+.nav-links {
+    display: flex; /* 啟用彈性盒子佈局，管理內部的多個選單連結 */
+    flex-direction: column; /* 設定軸向為垂直排列，讓所有導覽項目由上往下依序排隊 */
+    width: 100%; /* 寬度撐滿父層容器空間 */
+    margin-top: 20px; /* 設定上方外邊距為 20 像素，與最上方的 LOGO 或頭像拉開距離 */
+}
+
+.nav-item {
+    display: flex; /* 啟用彈性盒子佈局，讓內部的圖標容器與文字水平並排 */
+    align-items: center; /* 設定垂直方向居中對齊，確保圖標與文字完美水平對齊 */
+    padding: 20px 22px; /* 設定上下留白 20 像素、左右留白 22 像素，點擊區域更寬敞 */
+    color: #fff; /* 設定文字與內容初始顏色為純白色 */
+    text-decoration: none; /* 移除超連結預設的下劃線 */
+    white-space: nowrap; /* 強制選單內容絕對不允許折行，維持完美的單行橫向編排 */
+    transition: 0.3s; /* 設定過渡動畫時間為 0.3 秒，讓滑鼠移入時的變色效果流暢 */
+    gap: 25px; /* 設定內部的圖標容器與文字之間的水平間距為 12 像素 */
+}
+
+    /* 導覽列懸停效果 */
+    .nav-item:hover {
+        background: rgba(104, 191, 255, 0.1); /* 已修改：懸停時的微光主題色 */
+        color: #68BFFF; /* 已修改：文字變為主題藍 */
+    }
+
+
+.nav-icon {
+    min-width: 30px; /* 設定圖標外殼的最小寬度為 30 像素，防止被寬度擠壓變形 */
+    height: 30px; /* 固定圖標外殼的高度為 30 像素 */
+    /* margin-right: 20px; 【刪除原文】此處與外層 gap 重複疊加導致空間被破壞，故予以移除 */
+    background: transparent !important; /* 強制清除任何背景顏色，保持全透明 */
+    display: flex; /* 啟用彈性盒子，用於精確置中內部的 img 圖片 */
+    align-items: center; /* 垂直居中內部的圖片 */
+    justify-content: center; /* 水平居中內部的圖片 */
+    overflow: visible !important; /* 強制允許內部物件溢出顯示，防範因圖片尺寸問題產生切邊 */
+    flex-shrink: 0; /* 【關鍵新增】強制瀏覽器「絕對不准擠壓」這個圖標外殼的寬度 */
+}
+
+    .nav-icon img {
+        width: 30px !important; /* 強制規範實體圖標圖片寬度為 30 像素 */
+        height: 30px !important; /* 強制規範實體圖標圖片高度為 30 像素 */
+        display: block !important; /* 轉為區塊元素，消除圖片底部的微小空隙隙縫 */
+        object-fit: contain !important; /* 確保圖標圖片等比例縮放不變形 */
+    }
+
+nav:not(:hover) .nav-icon {
+    margin-right: 0 !important; /* 维持原來的縮小隱藏邏輯 */
+    /* 關鍵新增：用負邊距把 icon 往左邊拉回 7 像素，精確抵消 padding-left 的過度推力 */
+    margin-left: -7px !important;
+}
+
+.nav-text {
+    opacity: 0; /* 初始狀態下將透明度設為 0，使其處於隱藏狀態 */
+    transition: opacity 0.2s; /* 設定透明度變化的動畫時間為 0.2 秒 */
+    font-weight: bold; /* 字體設定為粗體，強化導覽列文字辨識度 */
+    white-space: nowrap; /* 關鍵：強制文字絕對不換行、不溢出，維持單行橫向呈現 */
+    text-align: left; /* 文字靠左對齊，保持整體排版整齊 */
+    flex-shrink: 0; /* 【關鍵新增】金鐘罩屬性：當導覽列變窄或變寬時，強制文字本身「絕對不准被壓扁」 */
+}
+
+nav:hover .nav-text {
+    opacity: 1; /* 當滑鼠懸停於導覽列上時，將文字透明度轉為 1 完整顯現 */
+}
+
+
+/* 2. 💡 防破版關鍵：導覽列與文字區塊絕對不能寫死寬度與高度 */
+#nav-container {
+    display: flex;
+    flex-wrap: wrap; /* 讓英文版字太長時能自動換行，避免擠出螢幕 */
+    gap: 15px;
+    z-index: 9990 !important;
+}
+
+
+
+/* 分頁區段設定：統一保留右側導覽列空間 */
+section {
+    /* 基礎尺寸設定，確保每一頁都跟視窗一樣大 */
+    width: 100vw; /* 強制每個區段頁面的寬度精確等於瀏覽器視窗的 100% */
+    height: 100vh; /* 強制每個區段頁面的高度精確等於瀏覽器視窗的 100% */
+    /* 核心吸附設定：定義每一頁的「頂端」為吸附對齊點 */
+    scroll-snap-align: start; /* 滾動對齊機制：當頁面滾動靠近時，自動將頂端吸附對齊螢幕 */
+    /* always: 防止快速捲動時一次跳過多個頁面，增加操作穩定度 */
+    scroll-snap-stop: always; /* 強制滾動一次只能停留在一個區段，防止滑鼠滑過頭 */
+    /* 以下維持你原有的排版設定 */
+    display: flex; /* 啟用彈性盒子，用於垂直與水平置中內容方框 content-box */
+    align-items: center; /* 內容在垂直方向上絕對居中 */
+    justify-content: center; /* 內容在水平方向上絕對居中 */
+    padding-right: 70px; /* 關鍵排版留白：在右側留出 70 像素空間，完美避開縮小狀態下的側邊導覽列 */
+    position: relative; /* 啟用相對定位，作為內部绝对定位元素（如鎖定標題）的參照物 */
+}
+
+    /* 針對內容過長的區塊 (如 Podcast) 的特別提醒：
+   因為開啟了強制吸附，內部必須維持 overflow-y: auto，
+   否則使用者會無法看完該頁所有內容。你的 .podcast-scroll-box 已有此設定。 */
+
+    /* 遊戲展示頁面：邊框特殊處理 */
+    /*section.game-zero {
+        padding: 0 70px 0 0;*/ /* 上 右 下 左 */
+    /*}*/
+
+/* 內容方框：入場動畫初始狀態（⚡ 視覺平移修正版） */
+.content-box {
+    /* ⚡ 關鍵修改 1：啟動相對定位，這能讓我們繞過外層 Flexbox 的霸道限制 */
+    position: relative;
+    /* ⚡ 關鍵修改 2：向左平移（數值可調整，如果原本太偏右，就給它負值往左拉） */
+    /* 推薦先給 -20px ~ -40px 試試。如果是負值（如 -30px），方框會直接硬生生往左移動 30 像素 */
+    left: +20px !important;
+    width: 100%; /* 設定方框寬度為父層空間的百分之百 */
+    max-width: 900px; /* 限制方框最大寬度為 900 像素 */
+    height: 550px; /* 固定方框的高度為 550 像素 */
+    background: rgba(34, 34, 34, 0.9); /* 深色半透明背景 */
+    padding: 40px; /* 設定內部留白空間為 40 像素 */
+    border-radius: 15px; /* 設定邊角圓角半徑為 15 像素 */
+    text-align: center; /* 設定方框內部的文字水平居中對齊 */
+    display: flex; /* 啟用彈性盒子佈局 */
+    flex-direction: column; /* 設定彈性盒子的軸向為垂直排列 */
+    justify-content: center; /* 設定彈性盒子在主軸上居中 */
+    /* ❌ 彻底刪除剛才沒有用的 margin-left 和 margin-right */
+    /* 入場前狀態：隱藏並向下偏移 */
+    opacity: 0;
+    transform: translateY(100px); /* 完美恢復你最原始、熟悉的動畫位移設定 */
+    transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); /* 平滑進場曲線 */
+}
+
+    /* 當使用者捲動到此頁面時呈現的狀態 */
+    .content-box.reveal {
+        opacity: 1;
+        transform: translateY(0); /* 完美滑動歸位 */
+    }
+
+
+/* 文字規範 */
+/* 大標題 */
+h1 {
+    margin-bottom: 25px; /* 設定大標題下方的外邊距為 25 像素，與下方元素保持舒適距離 */
+    color: #68BFFF; /* 設定大標題文字顏色為主題藍色 */
+    font-size: 32px; /* 設定大標題字型大小為 32 像素 */
+    /* 💡 多語系優化：防止英文大標題字數太長時衝出螢幕或重疊 */
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3; /* 縮小大標題行高，防止英文兩行時拉得太開 */
+}
+
+/* 為了完美配合 LOGO 上移，微調下方的遊戲介紹大標題 */
+#sec3 .content-box h1 {
+    /* 設定大標題與上方 LOGO 的舒適間距 */
+    margin-top: 15px;
+    /* 保持大標題與下方內文的閱讀距離 */
+    margin-bottom: 25px;
+}
+
+/* 副標題（新加入） */
+.sub-title {
+    margin-top: -15px; /* 設定上方的外邊距為負 15 像素，將副標題向上拉近大標題 */
+    margin-bottom: 30px; /* 設定下方的外邊距為 30 像素，與下方的內文拉開空間 */
+    color: rgba(104, 191, 255, 1); /* 使用 RGBA 紅綠藍不透明度設定文字顏色為主題藍 */
+    font-size: 22px; /* 設定副標題字型大小為 22 像素，形成視覺階層 */
+    font-weight: 5200; /* 設定字體粗細度為 500，呈現精緻的中圓/微粗體效果 */
+    letter-spacing: 1px; /* 設定文字之間的字距增加 1 像素，提升現代與科技感 */
+    white-space: pre-wrap; /* 保留字串內部的換行符號、多個空白以及 \t（Tab）縮排 */
+    tab-size: 4; /* 定義 \t（Tab）字元的顯示寬度等同於 4 個標準空白字元 */
+}
+
+/* 雙副標題圖片的包裹外殼 */
+.sub-title-img-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    /* 【關鍵修正】加大負向外邊距，強行將 LOGO 組大幅度單獨往上方抽高 */
+    margin-top: -55px;
+    /* 【關鍵修正】縮小與下方的距離，騰出中間空間，防止與下方的 h1 標題重疊或拉扯 */
+    margin-bottom: 5px;
+}
+
+/* 單張副標題圖片的尺寸規範 */
+.sub-title-img {
+    max-width: 250px; /* 【關鍵微調】因為一次放兩張，調小單張最大寬度（原 250px），防止並排時擠爆版面 */
+    height: auto; /* 高度自動按比例縮放，防止圖片擠壓變形 */
+    opacity: 0.9; /* 輕微透明度，完美融入深色科技感主題 */
+}
+
+/* 內文 */
+.p-text {
+    font-size: 20px; /* 設定內文字型大小為 20 像素，確保桌機與平板閱讀清晰 */
+    color: #ddd; /* 設定內文文字顏色為淺灰色，與深色背景形成高對比但不刺眼 */
+    white-space: pre-wrap; /* 保留內文字串內的原始換行（Enter）與所有的空白、縮排符號 */
+    /* 💡 多語系優化：優化長文本英文斷行，並微調行高 */
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.7; /* 中文適合 2 倍行高，但英文 2 倍會太散，改為 1.7 最兼顧中英文 */
+    /* ⚡ 達成您的要求：成行的左右對齊，不成行的最後一行自動靠左 */
+    text-align: justify;
+    /* 💡 英文排版優化：只調整單字間距，不拉散單字英文字母 */
+    text-justify: auto;
+    /* ⚡ 關鍵新增 1：限制內文文字的最大物理寬度（數值越小，文字左右往內縮越多） */
+    /* 推薦設定在 850px ~ 900px 之間，這是寬螢幕下最適合長文字閱讀的黃金寬度 */
+    max-width: 750px;
+    /* ⚡ 關鍵新增 2：上下維持 0，左右設定 auto，確保文字區塊在整體大拉伸下，依然在黑盒子正中央 */
+    margin: 0 auto;
+}
+
+
+
+
+
+
+
+
+/* ⚡ 1. 找回並更新你的專屬大框架樣式 */
+.podcast-wrapper {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    background: rgba(34, 34, 34, 0.6);
+    backdrop-filter: blur(15px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    box-sizing: border-box;
+    padding-top: 15px !important;
+    padding-bottom: 15px !important;
+}
+
+/* 2. 滾動控制層：解決空間遮擋與切斷問題 */
+.podcast-scroll-box {
+    /* 💡 為了配合外層框架的 Padding，將最大高度稍微縮減 30px（380 - 30），維持你原本要的清單小範圍 */
+    max-height: 350px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* ⚡ 關鍵修正：上下 Padding 改為 0！左右依然保留 20px 讓卡片不貼邊 */
+    padding: 0px 20px 0px 20px !important;
+    width: 100%;
+    box-sizing: border-box !important;
+    scroll-behavior: smooth;
+}
+
+    /* ❌ 徹底刪除之前的 ::before 偽元素，它在滾動條美化下會失效 */
+    /* .podcast-scroll-box::before { ... } */
+
+    /* 3. 自定義捲軸美化 */
+    .podcast-scroll-box::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .podcast-scroll-box::-webkit-scrollbar-thumb {
+        background: #68BFFF;
+        border-radius: 10px;
+    }
+
+/* 4. 單集項目樣式 */
+.podcast-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    /* ⚡ 關鍵修正：每一集卡片之間維持 15px 的間隔 */
+    margin-top: 0px;
+    margin-bottom: 15px;
+}
+
+    /* 💡 防呆微調：確保最後一集（第七集）貼齊滾動盒子的物理底部，讓捲軸終點不跑版 */
+    .podcast-item:last-child {
+        margin-bottom: 0px;
+    }
+
+/* 5. 播放器顏色 */
+audio {
+    width: 100%;
+    height: 32px;
+    filter: invert(0.9) hue-rotate(180deg) brightness(0.8) !important;
+    background: transparent !important;
+    border-radius: 30px;
+}
+
+/* 6. 標題文字 */
+.podcast-item h4 {
+    color: #68BFFF;
+    font-size: 17px;
+    font-weight: bold;
+    text-align: left;
+}
+
+
+
+
+
+/* --- 角色區容器：設定為全螢幕裁切 --- */
+#char-content {
+    position: relative;
+    width: 100vw; /* 佔滿視窗寬度 */
+    height: 100vh; /* 佔滿視窗高度 */
+    background: transparent;
+    padding: 0;
+    overflow: hidden; /* 關鍵：立繪超出螢幕邊界即裁切 */
+    display: flex;
+    justify-content: center; /* 讓內部的 UI 容器置中 */
+    align-items: center;
+}
+
+/* 角色展示主佈局：作為 UI 元件的定位參考範圍 */
+.char-layout {
+    position: relative;
+    width: 100%;
+    max-width: 1100px;
+    height: 600px;
+    /* 修改重點：整體向下移動 */
+    margin-top: 15vh; /* 增加上邊距，數值越大整體越靠下 */
+    pointer-events: none;
+}
+
+/* 1. 頭像按鈕區：恢復圓形、選取發光型態 */
+.char-btn-wrap {
+    position: absolute;
+    left: 20px; /* 維持在中央參考範圍的左側 */
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 10;
+    pointer-events: auto; /* 恢復按鈕可點擊 */
+}
+
+/* 圖像按鈕基礎樣式（移除容器與外框） */
+/* 圖像按鈕基礎樣式 */
+.head-circle {
+    width: 80px;
+    height: 80px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    overflow: visible; /* 關鍵：允許發光效果擴展到標籤外 */
+    transition: filter 0.3s ease;
+}
+
+    /* 圖像選取狀態：依據圖片去背邊緣產生發光 */
+    .head-circle.active {
+        filter: drop-shadow(0 0 6px rgba(104, 191, 255, 0.9)) 
+                drop-shadow(0 0 18px rgba(104, 191, 255, 0.6));
+    }
+
+    /* 內含圖片樣式 */
+    .head-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* 確保不規則形狀圖片完整顯示不被裁切 */
+        border-radius: 0; /* 關鍵：移除圓形設定，回歸圖片原本形狀 */
+    }
+
+
+/* 2. 角色大圖展示區：全螢幕魄力呈現 */
+.char-img-side {
+    position: absolute;
+    /* 修改重點：下沉量調整 */
+    bottom: -520px; /* 原為 -150px，增加負值讓角色更往下沉，露出更多上半身 */
+    left: -10vw;
+    width: 100vw;
+    height: 220%; /* 配合下沉，稍微再放大立繪，更有張力 */
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 1;
+}
+
+    .char-img-side img {
+        height: 100%;
+        width: auto;
+        object-fit: contain;
+        /* 暈影：已縮小數值，若仍有黑影可刪除此行 */
+        /*filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));*/
+    }
+
+/* 3. 角色資訊區塊：右側毛玻璃資訊窗 */
+.char-info-side {
+    position: absolute;
+    right: 30px;
+    top: 60%; /* 配合先前下移的設定 */
+    transform: translateY(-50%);
+    width: 340px;
+    background: rgba(34, 34, 34, 0.9);
+    backdrop-filter: blur(15px);
+    padding: 30px; /* 四周均等的內距 */
+    border-radius: 8px;
+    border-left: 5px solid #68BFFF;
+    z-index: 5;
+    /* 💡 容器維持 flex 靠左，讓標題等物件維持在左側 */
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* 確保內容物件靠左排列 */
+}
+
+/* 角色名字標題 */
+.char-name-title {
+    font-size: 42px;
+    font-weight: 900;
+    color: #68BFFF;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+    text-shadow: 0 0 15px rgba(104, 191, 255, 0.4);
+    /* 確保標題本身靠左 */
+    text-align: left;
+    width: 100%;
+}
+
+.char-intro {
+    white-space: pre-wrap;
+    line-height: 1.8;
+    font-size: 16px;
+    color: #eee;
+    margin: 0;
+    width: 100%;
+    /* ⚡ 關鍵修改：改成兩端對齊（成行左右對齊，不成行的最後一行自動靠左） */
+    text-align: justify;
+    /* 💡 英文排版優化：只拉開單字間的空格，不拉散英文字母 */
+    text-justify: inter-word;
+}
+
+
+
+/* 隱藏標題 */
+.char-section-title {
+    display: none;
+}
+
+
+
+
+
+
+/* 遊戲展示頁面 Title 強化 - 調整為置中、大標題尺寸，並絕對定位鎖定在容器頂部 */
+#sec5 .content-box .game-title,
+#sec6 .content-box .game-title {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    color: #68BFFF; /* 使用主題藍色 */
+    font-size: 32px; /* 32px 大標題尺寸 */
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: none;
+    margin: 0;
+    text-align: center;
+    z-index: 10;
+}
+
+/* 實機演示影片的外層包裹外殼：自動為複數區塊套用完美比例 */
+.video-wrapper {
+    width: 100%; /* 寬度撐滿父層內容方框 */
+    max-width: 720px; /* 限制影片最大寬度 */
+    margin: 80px auto 0; /* 上方預留 80 像素，完美避開頂部鎖定的置中大標題 */
+    border-radius: 8px; /* 設定影片外框圓角 */
+    border: 1px solid rgba(104, 191, 255, 0.4); /* 融入主題藍科技感細邊框 */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); /* 加上立體陰影 */
+    overflow: hidden; /* 隱藏多餘切邊，確保影片跟著外框一起呈現圓角 */
+    aspect-ratio: 16 / 9; /* 鎖定標準 16:9 寬螢幕比例，防止影片載入前容器塌陷 */
+    background: #000000; /* 影片未載入前的黑底緩衝 */
+}
+
+/* 實體影片標籤樣式 */
+.game-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 自動縮放填滿容器且不產生變形破圖 */
+    display: block;
+}
+
+/* ===================================================
+   【關鍵新增】隱藏原生影片控制面板的特定功能按鈕
+   =================================================== */
+
+/* 1. 隱藏「音量調整」按鈕 */
+video::-webkit-media-controls-volume-control-container,
+video::-webkit-media-controls-mute-button {
+    display: none !important;
+}
+
+/* 2. 隱藏「全螢幕」按鈕 */
+video::-webkit-media-controls-fullscreen-button {
+    display: none !important;
+}
+
+/* 3. 隱藏右側的「三個點（更多選項/下載按鈕）」 */
+video::-webkit-media-controls-enclosure {
+    overflow: hidden !important; /* 藉由切除邊緣隱藏三個點 */
+}
+
+video::-webkit-media-controls-panel {
+    width: calc(100% + 30px) !important; /* 將控制列拉寬 30px，把右側的三個點推到可視範圍外 */
+}
+
+
+/* 滿版遊戲區按鈕容器 */
+/* 強制顯示遊戲區與按鈕，確保佈局置中 */
+/*.game-zero .full-game-ui {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}*/
+
+/* 遊戲啟動按鈕基礎樣式 */
+/*.play-btn {
+    display: inline-block;
+    padding: 18px 60px;*/
+    /* 已修改：按鈕背景改為主題藍 (#68BFFF) */
+    /*background: #68BFFF;*/
+    /* 已修改：背景文字改為深色，確保在藍底上的閱讀清晰度 */
+    /*color: #000;
+    border: none;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 10;*/
+    /* 支援背景漸層進度條的設定 */
+    /*background-size: 100% 100%;
+    background-repeat: no-repeat;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}*/
+
+/* --- [新增：WebGL 嵌入專用樣式] --- */
+
+/* 遊戲容器方框：佔據扣除導覽列後寬度的 80% */
+/*.game-container-box {
+    width: 80%;*/ /* 佔據 80% 的可用寬度 */
+    /*max-width: none;*/ /* 取消原本的 1000px 限制 */
+    /*height: auto;
+    padding: 0;
+    background: transparent;*/ /* 移除深色背景，讓遊戲主體更突出 */
+    /*display: flex;
+    flex-direction: column;
+    align-items: center;
+}*/
+
+/* 嵌入視窗的比例控制 - 依原設定 960:600 = 1.6 比例 */
+/*.game-embed-viewport {
+    position: relative;
+    width: 100%;*/
+    /* 960:600 的比例高度計算：(600/960) * 100 = 62.5% */
+    /*padding-top: 62.5%;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #68BFFF;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}*/
+
+/* iframe 填滿容器 */
+/*.game-frame-inline {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+section.game-zero {
+    display: flex;
+    justify-content: center;*/ /* 水平置中 */
+    /*align-items: center;*/ /* 垂直置中 */
+    /*padding-right: 70px;*/ /* 避開右側導覽列 */
+/*}*/
+
+
+
+
+/* 製作人員容器：使用網格佈局 */
+/*.staff-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);*/ /* 預設大螢幕顯示兩欄 */
+    /*gap: 20px;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto 0;
+}*/
+
+/* 每一列的樣式：從淡色風格改為深色透明風格 */
+/*.staff-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 10px;*/
+    /* 已修改：分隔線改為半透明白，適合深色背景 */
+    /*border-bottom: 1px solid rgba(255, 255, 255, 0.1);*/
+    /* 已修改：文字改為亮灰色 */
+    /*color: #eee;
+}*/
+
+/* 職稱標籤樣式 */
+/*.staff-role {*/
+    /* 已修改：改為主題藍色 */
+    /*color: #68BFFF;
+    font-weight: bold;
+}*/
+
+/* 名字標籤樣式 */
+/*.staff-name {*/
+    /* 已修改：強化主題色呈現 */
+    /*color: #68BFFF !important;
+    font-weight: 900;
+}*/
+
+
+
+
+/* ==========================================
+ * 📱 1. 直向手機版適配（維持您原本的優秀設定）
+ * ========================================== */
+@media screen and (max-width: 600px) and (orientation: portrait) {
+    /* 成員網格改為單欄 */
+    .staff-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* 手機直向寬度不足，直接隱藏 QR Code */
+    .podcast-qr-wrap {
+        display: none !important;
+    }
+
+    /* 針對直向手機邊框優化內文範圍 */
+    .p-text, .char-intro-text, .char-showcase-container p {
+        width: calc(100% - 12vw) !important;
+        max-width: 100% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        text-align: justify !important;
+    }
+}
+
+/* ==========================================
+ * 🔄 2. 橫向裝置適配（全新加入：手機橫放 / 平板橫螢幕專屬安全鎖）
+ * ========================================== */
+@media screen and (orientation: landscape) and (max-height: 600px) {
+
+    /* 💡 核心優化：橫向螢幕高度極扁，成員名單必須改為雙欄或三欄，否則會衝出畫面 */
+    .staff-grid {
+        grid-template-columns: repeat(3, 1fr) !important; /* 強制切換為精緻三欄 */
+        gap: 15px !important; /* 縮小網格間距，騰出垂直空間 */
+    }
+
+    /* 💡 核心優化：手機橫著放時，使用者依舊「無法用自身鏡頭掃描自身螢幕」，強制隱藏 QR Code */
+    .podcast-qr-wrap {
+        display: none !important;
+    }
+
+    /* 💡 核心優化：防止內容方框（content-box）因為高度不夠而被裁切 */
+    .content-box {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* 💡 核心優化：縮小橫向裝置上的標題字體與間距，防止文字佔用過多垂直高度 */
+    h1 {
+        font-size: 24px !important;
+        margin-bottom: 10px !important;
+    }
+
+    .sub-title {
+        font-size: 16px !important;
+        margin-bottom: 15px !important;
+        margin-top: -5px !important;
+    }
+
+    /* 💡 核心優化：依據橫向螢幕邊框動態調整內文範圍 */
+    .p-text, .char-intro-text, .char-showcase-container p {
+        width: 75vw !important;
+        max-width: 650px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        font-size: 15px !important;
+        line-height: 1.6 !important;
+        text-align: justify !important;
+    }
+
+    /* 💡 角色展示頁優化：橫向時將角色大立繪稍微縮小，避免蓋住小頭像 */
+    .char-main-img {
+        max-height: 65vh !important;
+        width: auto;
+    }
+
+    /* ========================================================
+     * ⚡ 💡 核心修改：角色展示頁面橫向適配優化（頭像放大且右移）
+     * ======================================================== */
+
+    /* 1. 調整頭像群組外殼：完全不動容器，透過外邊距強制將整體往右推 */
+    .char-thumbs-wrap {
+        display: flex !important;
+        justify-content: flex-start !important; /* 改為由左往右排隊 */
+        width: auto !important;
+        /* ⚡ 核心優化：給予較大的左外邊距（例如 100px 或 15vw），將頭像整群往右邊推移 */
+        margin-left: 100px !important;
+        margin-right: auto !important;
+        margin-top: 15px !important; /* 建立與上方元件的舒適間距 */
+        gap: 18px !important; /* 加大頭像之間的間距，防止重疊 */
+    }
+
+        /* 2. ⚡ 核心優化：將人物小頭像物件本體等比例放大 */
+        .char-thumb-item, .char-avatar-img, .char-thumbs-wrap img {
+            width: 60px !important; /* 💡 將原本較小的尺寸放大至 60 像素 */
+            height: 60px !important; /* 💡 保持等比例正圓 */
+            object-fit: cover !important;
+            transition: transform 0.2s ease;
+        }
+
+            /* 3. 橫向觸控高亮反饋 */
+            .char-thumb-item:active, .char-thumb-item.active {
+                transform: scale(1.1); /* 被選中的頭像輕微放大 1.1 倍 */
+                box-shadow: 0 0 8px #68BFFF; /* 加上主題藍發光外框 */
+            }
+}
