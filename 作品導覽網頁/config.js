@@ -130,7 +130,7 @@ const translations = {
         //qrcodeAlt: "Scan QR code",
         // 區塊 5 & 6 標題 (英文版)
         gameDemoTitle5: "Visual Novel",
-        gameDemoTitle6: "Lonely Meteor Shower",
+        gameDemoTitle6: "Emotion Meteor",
         //// 遊戲載入文字 (英文版)
         //gameALoading: { btn: "Start Game", load: "System Loading", comp: "Welcome Back" },
         //gameBLoading: { btn: "Start Game", load: "Features Loading", comp: "Boot Success" },
