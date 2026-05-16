@@ -474,11 +474,11 @@ function renderChar(idx) {
 function renderGameDemoVideos() {
     const demoConfigs = {
         '#sec5 .content-box': {
-            title: config.gameDemoTitle5 || '實機演示',
+            title: config.gameDemoTitle5,
             src: config.gameVideoSrc5
         },
         '#sec6 .content-box': {
-            title: config.gameDemoTitle6 || '實機演示',
+            title: config.gameDemoTitle6,
             src: config.gameVideoSrc6
         }
     };
