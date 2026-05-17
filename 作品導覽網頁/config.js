@@ -242,7 +242,7 @@ const translations = {
         gameIntroTitle: "Game Introduction",
         // 設定英文版遊戲介紹區塊的主標題
 
-        gameIntroText: "Players enter a virtual world centered around AI companions. Through a visual novel-style narrative experience, players connect with different virtual characters and gradually project emotions, develop attachment, and construct imagined forms of intimacy." +
+        gameIntroText: "Players enter a virtual world centered around AI companions. Through a visual novel-style narrative experience, players connect with different virtual characters and gradually project emotions, develop attachment, and construct imagined forms of intimacy." + " "+
             "In addition, the work includes a mini-game called Falling Into You, centered on the idea of ‘emotions being received’. Players control the direction of falling meteors, guiding them toward the virtual characters on screen. Each successful hit represents a moment of emotional recognition, response, and emotional fulfillment.",
         // 設定英文版遊戲介紹區塊的詳細說明長文本，並使用加號（+）將兩段字串進行連接
 
