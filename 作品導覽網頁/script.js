@@ -16,7 +16,7 @@
 let lastTouchEnd = 0; // 在閉包最外層配置一個輕量級時間紀錄針，用來保存上一次觸控離牆的絕對時間戳記
 document.addEventListener('touchend', function (event) { // 在網頁最高節點註冊 touchend 原生觸控結束離牆事件，全時段追蹤手指抬起瞬間
     const now = Date.now(); // 在手指離牆的百萬分之一秒內，光速抓取當前的物理絕對時間戳記
-    if (now - lastTouchEnd <= 300) { // 核心時序判定：當前後兩次單指離牆的時間差小於或等於 300 毫秒（即定義為 iOS 標準雙擊手勢）時
+    if (now - lastTouchEnd <= 350) { // 核心時序判定：當前後兩次單指離牆的時間差小於或等於 350 毫秒（即定義為 iOS 標準雙擊手勢）時
         event.preventDefault(); // 終極正確阻斷：命令 WebKit 核心物理沒收此雙擊訊號，全平台強行封鎖、禁用單指雙擊放大行為
     } // 結束雙擊時間差的條件檢查分支
     lastTouchEnd = now; // 完美覆寫：將本次離牆時間點存入變數，做為下一次敲擊時的比對基準原點
