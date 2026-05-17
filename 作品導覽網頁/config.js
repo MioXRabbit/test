@@ -212,7 +212,7 @@ const translations = {
         nav_visualNovel: "Visual Novel",
         // 設定「視覺小說」導覽項目的英文文字
 
-        nav_meteor: "Emotion Meteor",
+        nav_meteor: "Falling into You",
         // 設定「寂寞流星雨」導覽項目的英文文字
 
         // nav_staff: "Staff",
@@ -339,8 +339,8 @@ const translations = {
         gameDemoTitle5: "Visual Novel",
         // 設定第 5 區塊的遊戲展示英文標題為 "Visual Novel"
 
-        gameDemoTitle6: "Emotion Meteor",
-        // 設定第 6 區塊的遊戲展示英文標題為 "Emotion Meteor"
+        gameDemoTitle6: "Falling into You",
+        // 設定第 6 區塊的遊戲展示英文標題為 "Falling into You"
 
         //// 遊戲載入文字 (英文版)
         // 單行註解：標示以下為遊戲載入時顯示的英文文字設定說明
