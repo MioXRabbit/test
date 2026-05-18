@@ -9,20 +9,8 @@
 【 網頁核心運作邏輯 - 完整逐行註解版 】
 ============================================================ */
 // 以上為區塊註解：大區塊分隔線與標題，明確標示從此處開始進入「網頁核心運作邏輯」的程式碼實作
-/* ==========================================
- * 全站觸控最高防線擴充：單指快速雙擊攔截網（100% 物理閹割 iOS 霸王雙擊放大機制）
- * ========================================== */
-let lastTouchEnd = 0; // 在閉包最外層配置一個輕量級時間紀錄針，用來保存上一次觸控離牆的絕對時間戳記
-document.addEventListener('touchend', function (event) { // 在網頁最高節點註冊 touchend 原生觸控結束離牆事件，全時段追蹤手指抬起瞬間
-    const now = Date.now(); // 在手指離牆的百萬分之一秒內，光速抓取當前的物理絕對時間戳記
-    if (now - lastTouchEnd <= 350) { // 核心時序判定：當前後兩次單指離牆的時間差小於或等於 350 毫秒（即定義為 iOS 標準雙擊手勢）時
-        event.preventDefault(); // 終極正確阻斷：命令 WebKit 核心物理沒收此雙擊訊號，全平台強行封鎖、禁用單指雙擊放大行為
-    } // 結束雙擊時間差的條件檢查分支
-    lastTouchEnd = now; // 完美覆寫：將本次離牆時間點存入變數，做為下一次敲擊時的比對基準原點
-}, { passive: false }); // 關鍵性能金鑰：硬性宣告為 false，明確命令瀏覽器核心允許此監聽器具有最高優先權來執行 preventDefault() 阻斷
-
 // ==========================================
-// 🛡️ 獨立不休眠按鈕 - config 參數驅動與自動換字防線
+// 獨立不休眠按鈕 - 全物件化時序同步與醒來保活防線
 // ==========================================
 (function () {
     const lockBtn = document.getElementById('wakeLockBtn');
@@ -30,81 +18,118 @@ document.addEventListener('touchend', function (event) { // 在網頁最高節�
 
     const textSpan = lockBtn.querySelector('.wakelock-text');
 
-    // 💡 核心新增：專屬的「文字即時即刻渲染小助手」
-    // 依據目前是否成功啟動，全自動去 config 撈取對應的文字
-    const updateButtonText = () => {
-        if (!textSpan) return;
+    // 💡 完美對齊 LangManager 架構：將所有狀態鎖、冷卻判定與指標直接內建在獨立控制物件中
+    const WakeLockCtrl = {
+        isCooling: false,    // 設定是否處於連點冷卻時間，預設為 false（不冷卻）
+        _lockInstance: null, // 用來統一保存系統常亮鎖實例的內部欄位
 
-        // 提撥設定檔路徑：若 config 未定義則安全退回預設中文
-        const txtOn = config.wakeLockOff || "";
-        const txtOff = config.wakeLockOn || "";
+        // 專屬的文字即時即刻渲染助手
+        updateText() {
+            if (!textSpan) return;
+            const txtOn = config.wakeLockOn || "休眠開啟";
+            const txtOff = config.wakeLockOff || "休眠關閉";
 
-        // 依照 active 類別是否存在，動態指派最正確的多語系文字
-        if (lockBtn.classList.contains('active')) {
-            textSpan.textContent = txtOff;
-        } else {
-            textSpan.textContent = txtOn;
+            if (lockBtn.classList.contains('active')) {
+                textSpan.textContent = txtOff;
+            } else {
+                textSpan.textContent = txtOn;
+            }
+        },
+
+        // 助手 A：向系統申請常亮鎖
+        request() {
+            if ('wakeLock' in navigator && !this._lockInstance) {
+                // 核心時序導正：在敲門的萬分之一秒內，先卡上申請中狀態，防止非同步時序錯位
+                this._lockInstance = "pending";
+
+                navigator.wakeLock.request('screen')
+                    .then((lock) => {
+                        this._lockInstance = lock;
+                        lockBtn.classList.add('active'); // 點亮主題藍滿填與文字反黑
+                        this.updateText(); // 0秒光速換字
+
+                        // 監聽系統沒收：當被低電量強行斷電釋放時，全自動熄滅外觀並還原文字
+                        lock.addEventListener('release', () => {
+                            WakeLockCtrl._lockInstance = null;
+                            lockBtn.classList.remove('active');
+                            WakeLockCtrl.updateText();
+                        });
+                    })
+                    .catch(() => {
+                        this._lockInstance = null;
+                        lockBtn.classList.remove('active');
+                        this.updateText();
+                    });
+            }
+        },
+
+        // 助手 B：手動解鎖，還原省電機能
+        release() {
+            if (this._lockInstance && this._lockInstance !== "pending") {
+                this._lockInstance.release()
+                    .then(() => {
+                        this._lockInstance = null;
+                        lockBtn.classList.remove('active'); // 熄滅外觀
+                        this.updateText(); // 0秒光速換字
+                    })
+                    .catch(() => {
+                        this._lockInstance = null;
+                        lockBtn.classList.remove('active');
+                        this.updateText();
+                    });
+            } else {
+                this._lockInstance = null;
+                lockBtn.classList.remove('active');
+                this.updateText();
+            }
         }
     };
 
-    // 助手 A：向系統申請常亮鎖
-    const requestLock = () => {
-        if ('wakeLock' in navigator && !lockBtn._lockInstance) {
-            navigator.wakeLock.request('screen')
-                .then((lock) => {
-                    lockBtn._lockInstance = lock;
-                    lockBtn.classList.add('active'); // 點亮綠藍色外觀
-                    updateButtonText(); // 🌟 0秒光速觸發 config 文字換字
-                    console.log("[WakeLock] 螢幕常亮已成功鎖定");
-                })
-                .catch(() => {
-                    lockBtn._lockInstance = null;
-                    lockBtn.classList.remove('active');
-                    updateButtonText();
-                });
-        }
-    };
-
-    // 助手 B：手動解鎖，還原省電機能
-    const releaseLock = () => {
-        if (lockBtn._lockInstance) {
-            lockBtn._lockInstance.release().catch(() => { }); // 物理釋放常亮鎖
-            lockBtn._lockInstance = null;
-            lockBtn.classList.remove('active'); // 熄滅外觀
-            updateButtonText(); // 🌟 0秒光速觸發 config 文字換字
-            console.log("[WakeLock] 常亮鎖已主動釋放");
-        }
-    };
-
-    // 🎯 監聽一：使用者親手點擊按鈕時的開關切換
+    // 🎯 監聽一：使用者親手點擊按鈕（完美對齊 LangManager 防連點與淡化邏輯）
     lockBtn.onclick = () => {
-        if (!lockBtn._lockInstance) {
-            localStorage.setItem('userWakeLockPref', 'true'); // 記憶使用者喜好
-            requestLock();
+        // 1. 如果正在冷卻，直接阻斷點擊
+        if (WakeLockCtrl.isCooling) return;
+
+        // 2. 點擊成功，立刻鎖定按鈕
+        WakeLockCtrl.isCooling = true;
+
+        // 3. 完美同步：在點擊的 1000 毫秒內，按鈕呈現優雅的微暗淡狀態，提供無延遲點擊反饋
+        lockBtn.style.opacity = "0.6";
+
+        // 4. 依照當前實體高亮狀態，執行開關切換判定（徹底根除失效 Bug）
+        if (!lockBtn.classList.contains('active')) {
+            WakeLockCtrl.request();
         } else {
-            localStorage.removeItem('userWakeLockPref'); // 移除喜好
-            releaseLock();
+            WakeLockCtrl.release();
         }
+
+        // 5. 設定 1000 毫秒後自動將狀態解除
+        setTimeout(() => {
+            WakeLockCtrl.isCooling = false; // 解除安全鎖
+            lockBtn.style.opacity = "1";    // 恢復按鈕 100% 原始亮度
+        }, 1000); // 1000 毫秒後執行內部程式碼
     };
 
-    // 🎯 監聽二：網頁失焦醒來全自動續約機制
+    // 🎯 監聽二：網頁切換分頁歸隊自動校對（彻底拔除已移除的 localStorage 隱患）
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-            const hasPref = localStorage.getItem('userWakeLockPref') === 'true';
-            if (hasPref) {
-                lockBtn._lockInstance = null;
-                requestLock();
+            // 💡 終極正確修正：不依賴並徹底移除 localStorage 快取檢查。
+            // 當網頁從背景醒來時，直接對照當前按鈕的實體樣式。
+            // 如果畫面上顯示著 active（開啟），代表需要重新與 iOS WebKit 核心建立保活連線！
+            if (lockBtn.classList.contains('active')) {
+                WakeLockCtrl._lockInstance = null; // 洗牌指標
+                WakeLockCtrl.request(); // 補火續約
             } else {
-                updateButtonText(); // 沒開功能也重新刷一次文字，防範切換語言後文字未同步
+                WakeLockCtrl.updateText(); // 沒開啟也同步刷洗文字，保證字體與 LangManager 一致
             }
         }
     });
 
-    // 🚀 網頁開局初次點火：讓按鈕一誕生就立刻去 config 抓文字填入
-    updateButtonText();
+    // 網頁開局初次點火文字指派
+    WakeLockCtrl.updateText();
 
-    // 💡 終極優化：將更新函數掛載到全域，方便您的 LangManager 在切換語言重新渲染時一併呼叫
-    window.updateWakeLockBtnLang = updateButtonText;
+    // 將更新函數掛載到全域，方便您的 LangManager 在變更語系時一併呼叫
+    window.updateWakeLockBtnLang = () => WakeLockCtrl.updateText();
 })();
 
 
