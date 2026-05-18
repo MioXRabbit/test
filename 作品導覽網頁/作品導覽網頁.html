@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+ <!-- 宣告網頁為現代 HTML5 標準文件，強迫瀏覽器以最高標準模式進行排版與渲染 -->
+<html lang="zh-TW">
+<!-- 宣告網頁語言為繁體中文（台灣），有利於搜尋引擎爬蟲進行精準網頁分類 -->
+<head>
+    <!-- 開啟網頁標頭容器，用來存放全站的 Meta 設定、標題、外部樣式表與效能預解析通道 -->
+    <meta charset="UTF-8"> <!-- 指定全網頁檔案編碼為國際標準的 UTF-8，徹底根除多國語言切換時可能發生的亂碼地雷 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <!-- 終極正確修正：徹底拔除 HTML 內部的 user-scalable 寫法，回歸最乾淨的標準 1.0 倍原尺寸視口宣告，將多點觸控防禦主權全權交棒給 JavaScript -->
+    <title>虛戀協議作品導覽</title> <!-- 設定瀏覽器分頁與搜尋引擎搜尋結果中顯示的網頁主標題名稱 -->
+    <!-- ==========================================
+         行動端全螢幕應用程式與系統狀態列設定
+         ========================================== -->
+    <meta name="mobile-web-app-capable" content="yes"> <!-- 行動端應用程式核心：允許網頁在加入主畫面後以獨立的 WebApp 模式運行，100% 解鎖全螢幕 -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <!-- iOS 專用防線：將 iPhone 頂部狀態列改為半透明，讓網頁大背景向上填滿至螢幕頂端 -->
+    <!-- ==========================================
+         外部資源引入與最高優先權背景圖預載通道
+         ========================================== -->
+    <link rel="apple-touch-icon" href="./icon/LOGO_1.png"> <!-- iOS 專用桌布圖示：指派使用者將此網頁「加入主畫面」時出現在手機桌面上的專屬圖示路徑 -->
+    <link rel="stylesheet" href="./style.css"> <!-- 引入全站的核心外部樣式表檔案，載入剛剛優化好的 RWD 媒體查詢與吸附排版 -->
+    <link rel="preload" as="image" href="./info/遊戲主視覺.png" fetchpriority="high"> <!-- 效能金鑰：命令瀏覽器在解析 HTML 的第一時間以最高優先權提前下載主視覺大圖 -->
+    <!-- ==========================================
+         全站非同步媒體來源之網路網域預解析（DNS Prefetch）
+         ========================================== -->
+    <link rel="dns-prefetch" href="//rss.soundon.fm"> <!-- 網路預解析：提前解析 SoundOn RSS 網域的 DNS，縮短後續非同步音訊抓取時的網路交握延遲 -->
+    <link rel="dns-prefetch" href="//storage.soundon.fm"> <!-- 網路預解析：提前解析 SoundOn 實體音訊儲存網域的 DNS，保障 Podcast 切換或首次放音時秒開 -->
+    <link rel="dns-prefetch" href="//i.scdn.co"> <!-- 網路預解析：提前解析 Spotify 託管封面圖網域的 DNS，確保 RSS 載入後單集封面圖片的下載快速通道不塞車 -->
+</head> <!-- 結束網頁標頭容器，瀏覽器解析至此將正式完成所有初始化預加載設定，準備進入 body 實體內容 -->
+
+<body>
+
+    <!-- ==========================================
+     * 橫向引導提示遮罩：初始全域埋線骨架（全通用 JS 圖片動態加載相容版）
+     * ========================================== -->
+    <div id="orientation-shield" class="screen-orientation-mask">
+        <div class="shield-message-box">
+            <!-- ⚡ 終極正確新增：埋入一個帶有唯一 ID 且 src 為空的純淨圖片標籤，用來完美承接 JavaScript 的開局動態載入防線，HTML 內 0% 絕不寫死任何固定圖片路徑 -->
+            <img id="shieldIconNode" alt="rotate hint" class="shield-icon-img">
+            <p id="shieldTextNode" class="shield-text"></p>
+        </div>
+    </div>
+
+    <!-- 開啟網頁實體... -->
+    <!-- 開啟網頁實體內容主體，瀏覽器將開始在此容器內部渲染所有使用者可見的前端互動元件 -->
+    <!-- ==========================================
+         全站核心底層：固定背景層與圖層外殼
+         ========================================== -->
+    <div class="fixed-bg" id="bg"></div> <!-- 建立全站固定背景層，搭配 ID 供 JavaScript 依頁面滾動動態切換亮度濾鏡 -->
+    <!-- ==========================================
+         全域語系管理器：單顆多國語言循環切換按鈕
+         ========================================== -->
+    <button id="langToggleBtn" onclick="window.LangManager.toggleLanguage()"></button> <!-- 建立語系切換按鈕，綁定點擊事件以非同步驅動全域語言管理器執行循環切換與重新渲染 -->
+    
+    <!-- 獨立不休眠按鈕：內嵌 1x1 像素的隱形無聲保活影片元件 -->
+    <div id="wakeLockBtn" class="wakelock-toggle-btn">
+        <span class="wakelock-text"></span>
+
+        <!-- 1x1 像素全透明無聲影片，用作 iOS 螢幕常亮最高特權的隱形鑰匙 -->
+        <video id="iosWakeVideo" loop muted playsinline style="position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;"></video>
+    </div>
+
+
+    <!-- ==========================================
+         側邊無縫滾動進度條與雙軌跑馬燈文字容器
+         ========================================== -->
+    <div class="side-marquee">
+        <!-- 開啟左側跑馬燈大外框容器，在 CSS 中鎖定極窄寬度以強制文字呈現單排垂直直書排版 -->
+        <div id="marquee-indicator"></div> <!-- 建立垂直滾動百分比指示器方框，搭配 CSS 混合模式與 JS 位移實現交疊自動反色特效 -->
+
+        <div class="marquee-track">
+            <!-- 開啟垂直文字捲動軌道，在 CSS 中綁定動畫以執行 25 秒的匀速垂直循環拉動 -->
+            <div id="marquee-content"></div> <!-- 建立跑馬燈主文字容器，供 JavaScript 透過 textContent 高效注入拼接 10 次的超長多國語言文本 -->
+            <div id="marquee-content-clone"></div> <!-- 建立跑馬燈鏡像文字容器，供 JavaScript 注入完全相同的超長文字以達成 100% 視覺無縫循環滾動 -->
+        </div> <!-- 結束文字捲動軌道容器 -->
+    </div> <!-- 結束側邊跑馬燈大外框容器 -->
+    <!-- ==========================================
+         獨立 LOGO 顯示盒：綁定點擊開關導覽列事件
+         ========================================== -->
+    <div class="logo-box" id="logoBtn" style="cursor: pointer;">
+        <!-- 建立右上角 LOGO 盒子，綁定 ID 與手勢游標以供 JavaScript 註冊導覽列開合點擊事件 -->
+        <img src="./icon/LOGO_1.png" alt="LOGO"> <!-- 嵌入 LOGO 實體圖片，搭配 CSS 自動 100% 填滿外層 180 像素的 logo-box 容器 -->
+    </div> <!-- 結束獨立 LOGO 顯示盒 -->
+    <!-- ==========================================
+         右側導覽列容器：智慧型多語系選單
+         ========================================== -->
+    <nav id="nav-container">
+        <!-- 開啟右側導覽列大框架，搭配 ID 供選單自由收縮核心進行 nav-open 樣式類別的動態切換 -->
+        <div class="nav-links" id="navList"></div> <!-- 建立導覽連結清單的實體容器，由 JavaScript 的 renderNav 函式依語系首次載入時動態注入 HTML 骨架 -->
+    </nav> <!-- 結束右側導覽列容器 -->
+    <!-- ==========================================
+         分頁內容大外殼與實體頁面區塊設定
+         ========================================== -->
+    <div id="scroll-wrapper">
+        <!-- 開啟全站分頁內容的總包裹外殼，集中管理內部的多個滾動吸附頁面 -->
+        <section id="sec0"></section> <!-- 1. Home (純背景)：建立第 0 頁純景觀首頁，作為網頁開啟時的首次載入與雙重動畫幀強制歸位鎖定點 -->
+
+        <section id="sec1">
+            <!-- 開啟第 1 頁策展理念分頁，在 CSS 中強制鎖定 100vh 滿版高度並對齊垂直吸附點 -->
+            <div class="content-box">
+                <!-- 開啟全站通用內容方框，在 CSS 中鎖定深色半透明背景、圓角與 0.8 秒平滑進場貝氏曲線動畫 -->
+                <h1>策展理念</h1> <!-- 建立策展理念主標題，由 JavaScript 首次載入或語系改變時透過 textContent 自動改寫純文字 -->
+                <p class="sub-title">Team Overview & Vision</p> <!-- 建立副標題文字標籤，在 CSS 中微調負外邊距以向上拉近與大標題的視覺階層距離 -->
+                <p class="p-text">這裡填寫原本的簡介內文敘述...</p> <!-- 建立介紹內文段落標籤，在 CSS 中設定 1.7 倍行高與左右對齊，供 JavaScript 指派多國語言長文本 -->
+            </div> <!-- 結束內容方框 -->
+        </section> <!-- 結束第 1 頁策展理念分頁 -->
+        <!-- ==========================================
+        分頁內容中的 sec2 部分：Podcast 節目展示分頁
+        ========================================== -->
+        <section id="sec2">
+            <!-- 開啟第 2 頁 Podcast 節目分頁，在 CSS 中強制鎖定 100vh 滿版高度並對齊垂直吸附點 -->
+            <div class="content-box">
+                <!-- 開啟內容方框，在 CSS 中鎖定深色半透明背景與 0.8 秒平滑進場貝氏曲線動畫 -->
+                <h1 id="podcastSectionTitle"></h1> <!-- 建立大標題節點，搭配唯一 ID 供 JavaScript 在畫面重繪時透過 textContent 自動注入當前語系文字 -->
+
+                <div class="podcast-wrapper" id="podcast-container">
+                    <!-- 建立 Podcast 列表大框架，搭配 ID 供 JavaScript 的 renderPodcastList 函式依語系自動渲染清單與原生播放器 -->
+                    <p style="color: #666; padding: 20px;">載入中...</p> <!-- 建立初始佔位文字段落，在 RSS 非同步資料流讀取完成前作為緩衝提示，隨後會被 innerHTML 完全覆蓋 -->
+                </div> <!-- 結束 Podcast 列表大框架 -->
+            </div> <!-- 結束內容方框 -->
+        </section> <!-- 結束第 2 頁 Podcast 節目分頁 -->
+        <!-- ==========================================
+        分頁內容中的 sec3 部分：遊戲介紹分頁
+        ========================================== -->
+        <section id="sec3">
+            <!-- 開啟第 3 頁遊戲介紹分頁，在 CSS 中強制鎖定 100vh 滿版高度並對齊垂直吸附點 -->
+            <div class="content-box">
+                <!-- 開啟內容方框，在 CSS 中鎖定深色半透明背景與 0.8秒平滑進場貝氏曲線動畫 -->
+                <h1>遊戲介紹</h1> <!-- 建立遊戲介紹主標題，由 JavaScript 首次載入或語系改變時透過 textContent 自動改寫純文字 -->
+                <p class="sub-title">Team Overview & Vision</p> <!-- 建立副標題文字標籤，在 CSS 中微調負外邊距以向上拉近與大標題的視覺階層距離 -->
+                <p class="p-text">這裡填寫原本的簡介內文敘述...</p> <!-- 建立介紹內文段落標籤，在 CSS 中設定 1.7 倍行高與左右對齊，供 JavaScript 指派多國語言長文本 -->
+            </div> <!-- 結束內容方框 -->
+        </section> <!-- 結束第 3 頁遊戲介紹分頁 -->
+        <!-- ==========================================
+         分頁內容中的 sec4 部分：角色介紹分頁
+         ========================================== -->
+        <section id="sec4">
+            <!-- 開啟第 4 頁角色介紹分頁，在 CSS 中強制鎖定 100vh 滿版高度並對齊垂直吸附點 -->
+            <div class="content-box" id="char-content">
+                <!-- 開啟內容方框並綁定 ID，作為 JavaScript 初始化時灌入克隆結構的實體目標容器 -->
+                <!-- JS 會將填充好的模板放入這裡 -->
+            </div> <!-- 結束內容方框 -->
+        </section> <!-- 結束第 4 頁角色介紹分頁 -->
+        <!-- ==========================================
+         角色區獨立模板宣告：HTML5 離線網頁範本結構
+         ========================================== -->
+        <template id="char-template">
+            <!-- 宣告獨立模板，綁定 ID 供 JavaScript 的 renderChar 函式在網頁首次載入時執行深層克隆 -->
+            <h1 class="char-section-title">角色展示</h1> <!-- 建立功能標題，在 CSS 中已設定為 display: none 以在畫面上完美隱藏 -->
+            <div class="char-layout">
+                <!-- 開啟角色展示主佈局，在 CSS 中設定相對定位、1100 像素最大寬度與 pointer-events 穿透鎖 -->
+                <div class="char-img-side">
+                    <!-- 開啟角色大圖展示區，在 CSS 中設定絕對定位與 bottom 負值，強迫立繪巨幅下沉呈現 -->
+                    <img class="main-img" src="" alt="character"> <!-- 建立大立繪圖片標籤，搭配 CSS 硬體加速與優化對比度，供 JS 動態更新 src 路徑 -->
+                </div> <!-- 結束角色大圖展示區 -->
+                <div class="char-info-side">
+                    <!-- 開啟右側毛玻璃資訊窗，在 CSS 中設定 15 像素平滑模糊、左側主題藍裝飾條與高強度半透明背景 -->
+                    <h2 class="char-name-title"></h2> <!-- 建立角色名字標題，在 CSS 中設定 42 像素極粗字體與外發光陰影，供 JS 透過 textContent 寫入內容 -->
+                    <p class="p-text char-intro"></p> <!-- 建立介紹與台詞段落，融合通用內文樣式，在 CSS 中設定 1.8 倍行高與 inter-word 單字兩端對齊 -->
+                </div> <!-- 結束角色介紹資訊窗 -->
+            </div> <!-- 結束角色展示主佈局 -->
+            <div class="char-btn-wrap"></div> <!-- 建立頭像切換按鈕群組容器，在 CSS 中設定 100% 垂直置中與 pointer-events: auto 開放點擊 -->
+        </template> <!-- 結束角色區獨立模板宣告 -->
+        <!-- ==========================================
+             分頁內容中的 sec5 部分：遊戲 A 展示分頁
+             ========================================== -->
+        <section id="sec5" class="game-zero">
+            <!-- 開啟第 5 頁遊戲 A 展示分頁，在 CSS 中強制鎖定 100vh 滿版高度並對齊垂直吸附點 -->
+            <div class="content-box game-container-box">
+                <!-- 開啟內容方框並疊加容器類別，作為 JavaScript 的 renderGameDemoVideos 函式在首次載入時動態注入影片結構的目標容器 -->
+                <h1 class="game-title">視覺小說展示</h1> <!-- 建立大標題節點，搭配 CSS 絕對定位與 translateX 鎖定在容器頂部，供 JS 動態更換為多國語言文字 -->
+                <!--<div class="game-embed-viewport">--> <!-- 遭註解掉的內容：預留給未來 iframe 動態內嵌遊戲的網頁視窗包裹容器，目前不啟用 -->
+                <!-- 遊戲會直接在這裡加載 --> <!-- 單行註解：說明未來 iframe 遊戲框架的載入進入點 -->
+                <!--<iframe id="game-frame-5" allow="autoplay; microphone; camera; focus-without-user-activation" src="..."></iframe>--> <!-- 遭註解掉的內容：預留給遊戲 A 的實體 iframe 標籤與音訊權限設定，目前不啟用 -->
+
+            </div> <!-- 結束內容方框 -->
+        </section> <!-- 結束第 5 頁遊戲 A 展示分頁 -->
+        <!-- ==========================================
+             分頁內容中的 sec6 部分：遊戲 B 展示分頁
+             ========================================== -->
+        <section id="sec6">
+            <!-- 開啟第 6 頁遊戲 B 展示分頁，在 CSS 中強制鎖定 100vh 滿版高度並對齊垂直吸附點 -->
+            <div class="content-box game-container-box">
+                <!-- 開啟內容方框並疊加容器類別，作為 JavaScript 的 renderGameDemoVideos 函式在首次載入時動態注入影片結構的目標容器 -->
+                <h1 class="game-title">寂寞流星雨展示</h1> <!-- 建立大標題節點，搭配 CSS 絕對定位與 translateX 鎖定在容器頂部，供 JS 動態更換為多國語言文字 -->
+                <!--<div class="game-embed-viewport">
+                    <iframe id="game-frame-6" allow="autoplay; microphone; camera; focus-without-user-activation" src="..."></iframe>
+
+                </div>-->
+                <!-- 以上四行皆遭註解：預留給遊戲 B（寂寞流星雨）的 iframe 實體網頁載入外殼與權限宣告，目前不啟用 -->
+            </div> <!-- 結束內容方框 -->
+        </section> <!-- 結束第 6 頁遊戲 B 展示分頁 -->
+        <!--<section id="sec7">
+            <div class="content-box" id="staff-content">-->
+        <!-- JS 會將內容渲染至此 -->
+        <!--</div>
+        </section>-->
+    </div> <!-- 完美閉合：上一輪開頭定義的 <div id="scroll-wrapper"> 全站分頁內容總包裹大外殼，將所有滿版 section 順利收入同一個捲動作用域中 -->
+    <!-- ==========================================
+         核心控制組件：依序引入獨立多國語言與主網頁互動邏輯腳本
+         ========================================== -->
+    <script src="./config.js"></script> <!-- 核心優化：優先加載多國語言與語系管理核心設定檔，在全域 window 物件上搶先初始化完備 translations 與 LangManager 資源 -->
+    <script src="./script.js"></script> <!-- 核心優化：隨後加載主網頁前端核心互動邏輯腳本，0 秒接收 languageChanged 事件通知並啟動全站 DOM 樹的調度渲染 -->
+
+</body> <!-- 閉合網頁實體內容主體容器，全站所有 HTML 骨架與功能節點在此正式宣告加載完畢，完成瀏覽器的物理像素繪製 -->
+</html>
