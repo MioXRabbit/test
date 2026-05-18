@@ -870,7 +870,7 @@ function renderPodcastList() {
                                 clearTimeout(parseInt(btn.dataset.timeoutId)); // 清除並回收定時器
                                 btn.removeAttribute('data-timeout-id');
                             }
-                            releaseWakeLock(); // 發生卡死撤退或手動中斷時，同步安全釋放螢幕鎖
+
 
                             // 🌟 核心對照：立刻去扒出原生播放器此時最真實的物理暫停與進度狀態
                             if (btn.classList.contains('is-loading') || audio.paused) {
