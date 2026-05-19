@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+ <!-- 宣告現代 HTML5 文件標準 -->
+<html lang="zh-TW">
+<!-- 設定網頁語言為繁體中文 -->
+<head>
+    <!-- 開啟網頁標頭容器 -->
+    <meta charset="UTF-8"> <!-- 設定網頁編碼為 UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"> <!-- 設定響應式視口與填滿瀏海螢幕 -->
+    <title>虛戀協議作品導覽</title> <!-- 設定瀏覽器分頁標題 -->
+
+    <meta name="apple-mobile-web-app-capable" content="yes"> <!-- 補上此行以正式解鎖 iOS 獨立全螢幕 WebApp 通道 -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <!-- 設定 iOS 狀態列為半透明使背景向上填滿 -->
+
+    <link rel="apple-touch-icon" href="./icon/LOGO_1.png"> <!-- 設定 iOS 主畫面應用程式圖示 -->
+    <link rel="stylesheet" href="./style.css"> <!-- 引入全站核心外部樣式表 -->
+    <link rel="preload" as="image" href="./info/遊戲主視覺.png" fetchpriority="high"> <!-- 以最高優先權預載首頁主視覺大圖 -->
+
+    <link rel="preconnect" href="//rss.soundon.fm">
+    <link rel="preconnect" href="//storage.soundon.fm">
+    <link rel="preconnect" href="//i.scdn.co">
+</head> <!-- 結束網頁標頭容器 -->
+
+<body>
+
+    <!-- ==========================================
+         橫向引導提示遮罩
+         ========================================== -->
+    <div id="orientation-shield" class="screen-orientation-mask">
+        <div class="shield-message-box">
+            <img id="shieldIconNode" alt="rotate hint" class="shield-icon-img"> <!-- 留空圖片標籤供 JS 動態注入圖示 -->
+            <p id="shieldTextNode" class="shield-text"></p> <!-- 供 JS 動態注入多語系提示文字 -->
+        </div>
+    </div>
+
+    <div class="fixed-bg" id="bg"></div> <!-- 固定背景層，供 JS 控制亮度濾鏡 -->
+
+    <button id="langToggleBtn" onclick="window.LangManager.toggleLanguage()"></button> <!-- 語系切換按鈕，綁定點擊事件 -->
+
+    <div class="side-marquee">
+        <div id="marquee-indicator"></div> <!-- 垂直滾動百分比指示器 -->
+        <div class="marquee-track">
+            <div id="marquee-content"></div> <!-- 跑馬燈主文字容器 -->
+            <div id="marquee-content-clone"></div> <!-- 跑馬燈鏡像文字容器 -->
+        </div>
+    </div> <!-- 結束側邊跑馬燈大外框容器 -->
+
+    <div class="logo-box" id="logoBtn" style="cursor: pointer;">
+        <img src="./icon/LOGO_1.png" alt="LOGO"> <!-- 嵌入 LOGO 圖片 -->
+    </div>
+
+    <nav id="nav-container">
+        <div class="nav-links" id="navList"></div> <!-- 導覽連結清單實體容器 -->
+    </nav>
+
+    <div id="scroll-wrapper">
+        <section id="sec0"></section> <!-- 第0頁純景觀首頁與強制歸位鎖定點 -->
+
+        <section id="sec1">
+            <!-- 開啟第 1 頁策展理念分頁 -->
+            <div class="content-box">
+                <!-- 開啟策展理念內容方框 -->
+                <h1></h1> <!-- 主標題標籤留空由 JS 動態填入多國語言 -->
+                <p class="sub-title"></p> <!-- 副標題標籤留空由 JS 動態填入多國語言 -->
+                <p class="p-text"></p> <!-- 內文段落標籤留空由 JS 動態填入多國語言 -->
+            </div> <!-- 結束內容方框 -->
+        </section> <!-- 結束第 1 頁策展理念分頁 -->
+        <!-- ==========================================
+    分頁內容中的 sec2 部分：Podcast 節目展示分頁
+    ========================================== -->
+        <section id="sec2">
+            <div class="content-box">
+                <h1 id="podcastSectionTitle"></h1> <!-- 供 JS 注入當前語系大標題文字 -->
+
+                <div class="podcast-wrapper" id="podcast-container">
+                    <p style="color: #666; padding: 20px;">載入中...</p> <!-- 初始佔位文字，隨後會被 JS 完全覆蓋 -->
+                </div>
+            </div>
+        </section>
+        <!-- ==========================================
+    分頁內容中的 sec3 部分：遊戲介紹分頁
+    ========================================== -->
+        <section id="sec3">
+            <!-- 開啟第 3 頁遊戲介紹分頁 -->
+            <div class="content-box">
+                <!-- 開啟內容方框 -->
+                <h1></h1> <!-- 主標題標籤留空由 JS 進行純文字填入 -->
+                <p class="sub-title"></p> <!-- 副標題標籤留空由 JS 進行純文字填入 -->
+                <p class="p-text"></p> <!-- 內文段落標籤留空由 JS 進行純文字填入 -->
+            </div> <!-- 結束內容方框 -->
+        </section> <!-- 結束第 3 頁遊戲介紹分頁 -->
+        <!-- ==========================================
+    分頁內容中的 sec4 部分：角色介紹分頁
+    ========================================== -->
+        <section id="sec4">
+            <div class="content-box" id="char-content"></div> <!-- 供 JS 初始化時灌入角色範本結構的實體容器 -->
+        </section>
+
+        <!-- ==========================================
+    角色區獨立模板宣告：HTML5 離線網頁範本結構
+    ========================================== -->
+        <template id="char-template">
+            <h1 class="char-section-title">角色展示</h1> <!-- 隱藏的功能標題 -->
+            <div class="char-layout">
+                <div class="char-img-side">
+                    <img class="main-img" src="" alt="character"> <!-- 供 JS 動態更新大立繪圖片網址 -->
+                </div>
+                <div class="char-info-side">
+                    <h2 class="char-name-title"></h2> <!-- 供 JS 寫入角色名字的標題元素 -->
+                    <p class="p-text char-intro"></p> <!-- 供 JS 寫入介紹與台詞的段落元素 -->
+                </div>
+            </div>
+            <div class="char-btn-wrap"></div> <!-- 頭像切換按鈕群組容器 -->
+        </template>
+        <!-- ==========================================
+    分頁內容中的 sec5 部分：遊戲 A 展示分頁
+    ========================================== -->
+        <section id="sec5" class="game-zero">
+            <div class="content-box game-container-box">
+                <h1 class="game-title">視覺小說展示</h1> <!-- 供 JS 更換為多國語言文字的大標題 -->
+            </div>
+        </section>
+
+        <!-- ==========================================
+    分頁內容中的 sec6 部分：遊戲 B 展示分頁
+    ========================================== -->
+        <section id="sec6">
+            <div class="content-box game-container-box">
+                <h1 class="game-title">寂寞流星雨展示</h1> <!-- 供 JS 更換為多國語言文字的大標題 -->
+            </div>
+        </section>
+
+    </div> <!-- 閉合全站分頁內容的總包裹外殼 -->
+    <!-- 加上 defer 確保在背景非同步下載，且嚴格按照順序在 DOM 解析完後才依序執行 -->
+    <script src="./config.js" defer></script>
+    <script src="./script.js" defer></script>
+
+</body>
+</html>
